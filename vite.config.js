@@ -2,13 +2,12 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-export default defineConfig(({ command }) => ({
+export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
   ],
-  // Base disamakan dengan nama repo di URL GitHub: Por-Prov
-  base: command === 'build' ? '/Por-Prov/' : '/',
+  base: '/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
@@ -28,4 +27,4 @@ export default defineConfig(({ command }) => ({
     host: true,
     port: 3000
   }
-}))
+})
