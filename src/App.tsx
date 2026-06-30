@@ -20,8 +20,6 @@ import {
   CheckCircle,
   Building,
   X,
-  Ticket,
-  FileText,
   ChevronDown,
   ChevronUp,
   MapPin,
@@ -39,8 +37,31 @@ type AccordionItem = {
   content: string;
 };
 
+type LightboxImage = {
+  src: string;
+  alt: string;
+  fallback?: string | string[] | undefined;
+};
+
+type ImageWithFallbackProps = {
+  src: string;
+  fallback?: string | string[] | undefined;
+  alt: string;
+  className?: string;
+  onClick?: () => void;
+};
+
 const logoImg = '/assets/brand/logo.png';
-const posterImg = '/assets/brand/poster.png';
+const logoSpecImg = '/assets/brand/logo2.png';
+const footerLogoImg = '/assets/brand/logo3.png';
+
+const posterDesktopImg = '/assets/brand/poster.png';
+const posterMobileImg = '/assets/brand/poster2.png';
+const posterMobileFallbackImg = '/assets/brand/poster 2.png';
+
+const promoPosterDesktopImg = '/assets/brand/promoposter1x1.png';
+const promoPosterMobileImg = '/assets/brand/promopostera4.png';
+
 const denahImg = '/assets/brand/denah.png';
 const gambar1Img = '/assets/brand/gambar 1.png';
 const gambar2Img = '/assets/brand/gambar 2.png';
@@ -149,24 +170,6 @@ const installmentItems = [
   },
 ];
 
-const promoItems: IconCard[] = [
-  {
-    icon: CheckCircle,
-    title: 'Angsuran Flat',
-    description: '1 Juta-an / Bulan',
-  },
-  {
-    icon: Ticket,
-    title: 'Booking Fee',
-    description: 'Rp 500 Ribu',
-  },
-  {
-    icon: FileText,
-    title: 'Spesial Promo',
-    description: 'FREE BPHTB* & DP 1%',
-  },
-];
-
 const accordionItems: AccordionItem[] = [
   {
     id: 'ket',
@@ -182,27 +185,39 @@ const accordionItems: AccordionItem[] = [
   },
 ];
 
+const getFallbackList = (fallback?: string | string[] | undefined) => {
+  if (!fallback) return [];
+  return Array.isArray(fallback) ? fallback.filter(Boolean) : [fallback];
+};
+
 const ImageWithFallback = ({
   src,
   fallback,
   alt,
   className,
-}: {
-  src: string;
-  fallback: string;
-  alt: string;
-  className?: string;
-}) => (
-  <img
-    src={src}
-    alt={alt}
-    className={className}
-    onError={(e) => {
-      e.currentTarget.onerror = null;
-      e.currentTarget.src = fallback;
-    }}
-  />
-);
+  onClick,
+}: ImageWithFallbackProps) => {
+  const [imageIndex, setImageIndex] = useState(0);
+  const sources = [src, ...getFallbackList(fallback)];
+
+  useEffect(() => {
+    setImageIndex(0);
+  }, [src]);
+
+  return (
+    <img
+      src={sources[imageIndex]}
+      alt={alt}
+      className={className}
+      onClick={onClick}
+      onError={() => {
+        setImageIndex((current) =>
+          current < sources.length - 1 ? current + 1 : current
+        );
+      }}
+    />
+  );
+};
 
 const SectionHeader = ({
   eyebrow,
@@ -213,15 +228,17 @@ const SectionHeader = ({
   title: string;
   description?: string;
 }) => (
-  <div className="text-center mb-10 md:mb-14">
+  <div className="text-center mb-8 md:mb-10">
     <span className="text-[#1B4D3E] font-extrabold uppercase tracking-[0.2em] text-[11px] md:text-xs">
       {eyebrow}
     </span>
-    <h2 className="text-3xl md:text-4xl font-black text-gray-950 mt-3">
+
+    <h2 className="text-3xl md:text-4xl font-black text-gray-950 mt-2">
       {title}
     </h2>
+
     {description && (
-      <p className="mt-4 text-gray-600 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
+      <p className="mt-3 text-gray-600 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
         {description}
       </p>
     )}
@@ -248,6 +265,9 @@ const LocationCard = ({ icon: Icon, title, description }: IconCard) => (
 export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [openAccordion, setOpenAccordion] = useState<string | null>('ket');
+  const [lightboxImage, setLightboxImage] = useState<LightboxImage | null>(
+    null
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => setIsModalOpen(true), 1200);
@@ -256,6 +276,18 @@ export default function App() {
 
   const toggleAccordion = (id: string) => {
     setOpenAccordion((current) => (current === id ? null : id));
+  };
+
+  const openLightbox = (
+    src: string,
+    alt: string,
+    fallback?: string | string[] | undefined
+  ) => {
+    setLightboxImage({ src, alt, fallback });
+  };
+
+  const closeLightbox = () => {
+    setLightboxImage(null);
   };
 
   return (
@@ -407,10 +439,30 @@ export default function App() {
 
                   <div className="relative bg-white p-2 rounded-[2rem] shadow-2xl border border-gray-100">
                     <ImageWithFallback
-                      src={posterImg}
-                      fallback={gambar1Img}
-                      alt="Promo Pesona Bunga Cibatok"
-                      className="rounded-[1.5rem] w-full object-cover aspect-[4/5] md:aspect-[5/4]"
+                      src={posterDesktopImg}
+                      fallback={posterDesktopImg}
+                      alt="Poster Rumah Subsidi Pesona Bunga Cibatok"
+                      onClick={() =>
+                        openLightbox(
+                          posterDesktopImg,
+                          'Poster Rumah Subsidi Pesona Bunga Cibatok'
+                        )
+                      }
+                      className="hidden md:block rounded-[1.5rem] w-full aspect-square object-cover cursor-zoom-in"
+                    />
+
+                    <ImageWithFallback
+                      src={posterMobileImg}
+                      fallback={[posterMobileFallbackImg, posterDesktopImg]}
+                      alt="Poster Mobile Rumah Subsidi Pesona Bunga Cibatok"
+                      onClick={() =>
+                        openLightbox(
+                          posterMobileImg,
+                          'Poster Mobile Rumah Subsidi Pesona Bunga Cibatok',
+                          [posterMobileFallbackImg, posterDesktopImg]
+                        )
+                      }
+                      className="md:hidden rounded-[1.5rem] w-full aspect-[1/1.414] object-cover cursor-zoom-in"
                     />
                   </div>
 
@@ -491,47 +543,63 @@ export default function App() {
           </div>
         </section>
 
-        <section id="fasilitas" className="py-16 md:py-20 bg-[#F7F7F3]">
+        <section id="fasilitas" className="py-12 md:py-14 bg-[#F7F7F3]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-center mb-4 md:mb-5">
+              <ImageWithFallback
+                src={logoSpecImg}
+                fallback={logoImg}
+                alt="Logo Pesona Bunga Cibatok"
+                className="w-[320px] md:w-[500px] lg:w-[620px] h-auto object-contain"
+              />
+            </div>
+
             <SectionHeader
               eyebrow="Spesifikasi Bangunan"
               title="Tipe 27/60"
               description="Desain modern minimalis dengan tata ruang fungsional untuk kebutuhan keluarga pertama."
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-              <div className="space-y-4 md:space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-stretch">
+              <div className="h-full grid grid-cols-1 gap-4 md:gap-6 lg:grid-rows-3">
                 <div className="rounded-3xl overflow-hidden shadow-lg border border-gray-100 bg-white">
                   <ImageWithFallback
                     src={gambar1Img}
-                    fallback={gambar1Img}
+                    fallback={gambar2Img}
                     alt="Tampak Depan Rumah"
-                    className="w-full object-cover hover:scale-105 transition-transform duration-500 aspect-[4/3]"
+                    onClick={() =>
+                      openLightbox(gambar1Img, 'Tampak Depan Rumah')
+                    }
+                    className="w-full h-full min-h-[220px] md:min-h-[260px] lg:min-h-0 object-cover hover:scale-105 transition-transform duration-500 cursor-zoom-in"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 md:gap-6">
-                  <div className="rounded-2xl overflow-hidden shadow-md border border-gray-100 bg-white">
-                    <ImageWithFallback
-                      src={gambar2Img}
-                      fallback={gambar1Img}
-                      alt="Tampak Samping Rumah"
-                      className="w-full object-cover hover:scale-105 transition-transform duration-500 aspect-[4/3]"
-                    />
-                  </div>
+                <div className="rounded-3xl overflow-hidden shadow-lg border border-gray-100 bg-white">
+                  <ImageWithFallback
+                    src={gambar2Img}
+                    fallback={gambar1Img}
+                    alt="Tampak Samping Rumah"
+                    onClick={() =>
+                      openLightbox(gambar2Img, 'Tampak Samping Rumah')
+                    }
+                    className="w-full h-full min-h-[220px] md:min-h-[260px] lg:min-h-0 object-cover hover:scale-105 transition-transform duration-500 cursor-zoom-in"
+                  />
+                </div>
 
-                  <div className="rounded-2xl overflow-hidden shadow-md border border-gray-100 bg-white">
-                    <ImageWithFallback
-                      src={gambar3Img}
-                      fallback={gambar1Img}
-                      alt="Tampak Malam Rumah"
-                      className="w-full object-cover hover:scale-105 transition-transform duration-500 aspect-[4/3]"
-                    />
-                  </div>
+                <div className="rounded-3xl overflow-hidden shadow-lg border border-gray-100 bg-white">
+                  <ImageWithFallback
+                    src={gambar3Img}
+                    fallback={gambar1Img}
+                    alt="Tampak Malam Rumah"
+                    onClick={() =>
+                      openLightbox(gambar3Img, 'Tampak Malam Rumah')
+                    }
+                    className="w-full h-full min-h-[220px] md:min-h-[260px] lg:min-h-0 object-cover hover:scale-105 transition-transform duration-500 cursor-zoom-in"
+                  />
                 </div>
               </div>
 
-              <div className="bg-white p-5 md:p-8 lg:p-10 rounded-3xl shadow-xl border border-gray-100">
+              <div className="bg-white p-5 md:p-8 lg:p-10 rounded-3xl shadow-xl border border-gray-100 h-full">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 border-b border-gray-100 pb-5">
                   <div>
                     <h3 className="text-2xl font-black text-gray-950">
@@ -547,12 +615,13 @@ export default function App() {
                   </span>
                 </div>
 
-                <div className="bg-gray-50 rounded-3xl p-3 md:p-4 mb-7 border border-gray-100">
+                <div className="bg-gray-50 rounded-3xl p-4 md:p-6 mb-7 border border-gray-100 flex items-center justify-center">
                   <ImageWithFallback
                     src={denahImg}
                     fallback={denahImg}
                     alt="Denah Tipe 27/60"
-                    className="w-full rounded-2xl mix-blend-multiply"
+                    onClick={() => openLightbox(denahImg, 'Denah Tipe 27/60')}
+                    className="w-full max-h-[620px] object-contain rounded-2xl cursor-zoom-in mx-auto"
                   />
                 </div>
 
@@ -893,12 +962,12 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
             <div className="text-center md:text-left">
-              <div className="bg-white p-3 inline-block rounded-2xl mb-5 shadow-lg">
+              <div className="inline-block mb-5">
                 <ImageWithFallback
-                  src={logoImg}
+                  src={footerLogoImg}
                   fallback={logoImg}
                   alt="Pesona Bunga Cibatok"
-                  className="h-12 w-auto object-contain"
+                  className="h-24 md:h-32 lg:h-36 w-auto object-contain"
                 />
               </div>
 
@@ -975,69 +1044,69 @@ export default function App() {
         </div>
       </div>
 
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-[90] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 cursor-zoom-out"
+          onClick={closeLightbox}
+        >
+          <button
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition"
+            aria-label="Tutup gambar"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          <ImageWithFallback
+            src={lightboxImage.src}
+            fallback={lightboxImage.fallback}
+            alt={lightboxImage.alt}
+            className="max-w-[95vw] max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+          />
+        </div>
+      )}
+
       <div
-        className={`fixed inset-0 z-[60] flex items-end md:items-center justify-center p-3 md:p-4 bg-[#0F2922]/80 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[60] flex items-center justify-center p-3 md:p-4 bg-[#0F2922]/80 backdrop-blur-sm transition-opacity duration-300 ${
           isModalOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={() => setIsModalOpen(false)}
       >
         <div
-          className={`bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl transform transition-transform duration-300 ${
+          className={`relative w-full max-w-[92vw] md:max-w-[760px] transform transition-transform duration-300 ${
             isModalOpen ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'
           }`}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="relative bg-[#0F2922] p-7 md:p-8 text-center text-white border-b-4 border-[#D4AF37]">
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full w-8 h-8 flex items-center justify-center transition"
-              aria-label="Tutup promo"
-            >
-              <X className="w-4 h-4" />
-            </button>
+          <button
+            onClick={() => setIsModalOpen(false)}
+            className="absolute top-3 right-3 md:top-4 md:right-4 z-20 text-white bg-black/45 hover:bg-black/65 rounded-full w-10 h-10 md:w-11 md:h-11 flex items-center justify-center transition shadow-lg"
+            aria-label="Tutup promo"
+          >
+            <X className="w-5 h-5" />
+          </button>
 
-            <div className="inline-block bg-[#D4AF37] text-[#0F2922] text-xs font-black px-3 py-1 rounded-full mb-4 tracking-wider">
-              PROMO TERBATAS
-            </div>
+          <a
+            href={waLinkPromo}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => setIsModalOpen(false)}
+            className="block"
+          >
+            <ImageWithFallback
+              src={promoPosterDesktopImg}
+              fallback={promoPosterDesktopImg}
+              alt="Promo Rumah Subsidi Desktop"
+              className="hidden md:block w-full h-auto rounded-[2rem] shadow-2xl cursor-pointer"
+            />
 
-            <h2 className="text-2xl md:text-3xl font-black mb-1">
-              RUMAH SUBSIDI
-            </h2>
-
-            <p className="font-medium text-[#E9EFEA] text-sm">
-              Pesona Bunga Cibatok
-            </p>
-          </div>
-
-          <div className="p-5 md:p-8 text-center">
-            <div className="space-y-3 md:space-y-4 mb-6 md:mb-8 text-left">
-              {promoItems.map(({ icon: Icon, title, description }) => (
-                <div
-                  key={title}
-                  className="flex items-center p-4 bg-[#F4F7F5] rounded-2xl border border-[#E9EFEA] shadow-sm"
-                >
-                  <Icon className="text-[#2D6A4F] w-8 h-8 mr-4 shrink-0" />
-                  <div>
-                    <p className="text-xs text-gray-500 font-bold">{title}</p>
-                    <p className="font-black text-gray-950 text-lg">
-                      {description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <a
-              href={waLinkPromo}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => setIsModalOpen(false)}
-              className="w-full bg-[#1B4D3E] hover:bg-[#0F2922] text-white font-black py-4 px-4 rounded-2xl shadow-lg transition transform hover:-translate-y-0.5 text-base md:text-lg flex items-center justify-center gap-2"
-            >
-              <WhatsAppIcon className="text-[#D4AF37] w-6 h-6" />
-              Klaim Sekarang
-            </a>
-          </div>
+            <ImageWithFallback
+              src={promoPosterMobileImg}
+              fallback={promoPosterMobileImg}
+              alt="Promo Rumah Subsidi Mobile"
+              className="md:hidden w-full h-auto max-h-[88vh] object-contain rounded-[1.5rem] shadow-2xl cursor-pointer"
+            />
+          </a>
         </div>
       </div>
     </div>
